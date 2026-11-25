@@ -1,0 +1,258 @@
+# SPDX-License-Identifier: MIT-0
+---
+
+- name: V-278656 | configure local administrator merge behavior for lists
+  tags:
+    - V-278656
+    - CAT2
+  when:
+    - "'V-278656' not in stig_win_defender_antivirus_exceptions"
+  ansible.builtin.set_fact:
+    stig_win_defender_antivirus_policy: >-  # noqa: var-naming[no-role-prefix]
+      {{ stig_win_defender_antivirus_policy + stig_win_defender_antivirus_entries }}
+  vars:
+    stig_win_defender_antivirus_entries:  # noqa: var-naming[no-role-prefix]
+      - path: 'SOFTWARE\Policies\Microsoft\Windows Defender'
+        name: 'DisableLocalAdminMerge'
+        type: DWord
+        data: 1
+
+- name: V-278659 | randomize scheduled task times
+  tags:
+    - V-278659
+    - CAT2
+  when:
+    - "'V-278659' not in stig_win_defender_antivirus_exceptions"
+  ansible.builtin.set_fact:
+    stig_win_defender_antivirus_policy: >-  # noqa: var-naming[no-role-prefix]
+      {{ stig_win_defender_antivirus_policy + stig_win_defender_antivirus_entries }}
+  vars:
+    stig_win_defender_antivirus_entries:  # noqa: var-naming[no-role-prefix]
+      - path: 'SOFTWARE\Policies\Microsoft\Windows Defender'
+        name: 'RandomizeScheduleTaskTimes'
+        type: DWord
+        data: 1
+
+- name: V-278660 | hide the Family options area
+  tags:
+    - V-278660
+    - CAT2
+  when:
+    - "'V-278660' not in stig_win_defender_antivirus_exceptions"
+  ansible.builtin.set_fact:
+    stig_win_defender_antivirus_policy: >-  # noqa: var-naming[no-role-prefix]
+      {{ stig_win_defender_antivirus_policy + stig_win_defender_antivirus_entries }}
+  vars:
+    stig_win_defender_antivirus_entries:  # noqa: var-naming[no-role-prefix]
+      - path: 'SOFTWARE\Policies\Microsoft\Windows Defender Security Center\Family options'
+        name: 'UILockdown'
+        type: DWord
+        data: 1
+
+- name: V-278661 | enable the file hash computation feature
+  tags:
+    - V-278661
+    - CAT2
+  when:
+    - "'V-278661' not in stig_win_defender_antivirus_exceptions"
+  ansible.builtin.set_fact:
+    stig_win_defender_antivirus_policy: >-  # noqa: var-naming[no-role-prefix]
+      {{ stig_win_defender_antivirus_policy + stig_win_defender_antivirus_entries }}
+  vars:
+    stig_win_defender_antivirus_entries:  # noqa: var-naming[no-role-prefix]
+      - path: 'SOFTWARE\Policies\Microsoft\Windows Defender\MpEngine'
+        name: 'EnableFileHashComputation'
+        type: DWord
+        data: 1
+
+- name: V-278662 | enable extended cloud check
+  tags:
+    - V-278662
+    - CAT2
+  when:
+    - "'V-278662' not in stig_win_defender_antivirus_exceptions"
+  ansible.builtin.set_fact:
+    stig_win_defender_antivirus_policy: >-  # noqa: var-naming[no-role-prefix]
+      {{ stig_win_defender_antivirus_policy + stig_win_defender_antivirus_entries }}
+  vars:
+    stig_win_defender_antivirus_entries:  # noqa: var-naming[no-role-prefix]
+      - path: 'SOFTWARE\Policies\Microsoft\Windows Defender\MpEngine'
+        name: 'MpBafsExtendedTimeout'
+        type: DWord
+        data: 50
+
+- name: V-278668 | enable script scanning
+  tags:
+    - V-278668
+    - CAT2
+  when:
+    - "'V-278668' not in stig_win_defender_antivirus_exceptions"
+  ansible.builtin.set_fact:
+    stig_win_defender_antivirus_policy: >-  # noqa: var-naming[no-role-prefix]
+      {{ stig_win_defender_antivirus_policy + stig_win_defender_antivirus_entries }}
+  vars:
+    stig_win_defender_antivirus_entries:  # noqa: var-naming[no-role-prefix]
+      - path: 'SOFTWARE\Policies\Microsoft\Windows Defender\Real-Time Protection'
+        name: 'DisableScriptScanning'
+        type: DWord
+        data: 0
+
+- name: V-278669 | enable real-time protection and Security Intelligence Updates during OOBE
+  tags:
+    - V-278669
+    - CAT2
+  when:
+    - "'V-278669' not in stig_win_defender_antivirus_exceptions"
+  ansible.builtin.set_fact:
+    stig_win_defender_antivirus_policy: >-  # noqa: var-naming[no-role-prefix]
+      {{ stig_win_defender_antivirus_policy + stig_win_defender_antivirus_entries }}
+  vars:
+    stig_win_defender_antivirus_entries:  # noqa: var-naming[no-role-prefix]
+      - path: 'SOFTWARE\Policies\Microsoft\Windows Defender\Real-Time Protection'
+        name: 'OobeEnableRtpAndSigUpdate'
+        type: DWord
+        data: 1
+
+- name: V-278674 | enable EDR in block mode
+  tags:
+    - V-278674
+    - CAT2
+  when:
+    - "'V-278674' not in stig_win_defender_antivirus_exceptions"
+  ansible.builtin.set_fact:
+    stig_win_defender_antivirus_policy: >-  # noqa: var-naming[no-role-prefix]
+      {{ stig_win_defender_antivirus_policy + stig_win_defender_antivirus_entries }}
+  vars:
+    stig_win_defender_antivirus_entries:  # noqa: var-naming[no-role-prefix]
+      - path: 'SOFTWARE\Policies\Microsoft\Windows Defender\Features'
+        name: 'PassiveRemediation'
+        type: DWord
+        data: 1
+
+- name: V-278675 | report Dynamic Signature dropped events
+  tags:
+    - V-278675
+    - CAT2
+  when:
+    - "'V-278675' not in stig_win_defender_antivirus_exceptions"
+  ansible.builtin.set_fact:
+    stig_win_defender_antivirus_policy: >-  # noqa: var-naming[no-role-prefix]
+      {{ stig_win_defender_antivirus_policy + stig_win_defender_antivirus_entries }}
+  vars:
+    stig_win_defender_antivirus_entries:  # noqa: var-naming[no-role-prefix]
+      - path: 'SOFTWARE\Policies\Microsoft\Windows Defender\Reporting'
+        name: 'EnableDynamicSignatureDroppedEventReporting'
+        type: DWord
+        data: 1
+
+- name: V-278676 | scan excluded files and directories during quick scans
+  tags:
+    - V-278676
+    - CAT2
+  when:
+    - "'V-278676' not in stig_win_defender_antivirus_exceptions"
+  ansible.builtin.set_fact:
+    stig_win_defender_antivirus_policy: >-  # noqa: var-naming[no-role-prefix]
+      {{ stig_win_defender_antivirus_policy + stig_win_defender_antivirus_entries }}
+  vars:
+    stig_win_defender_antivirus_entries:  # noqa: var-naming[no-role-prefix]
+      - path: 'SOFTWARE\Policies\Microsoft\Windows Defender\Scan'
+        name: 'QuickScanIncludeExclusions'
+        type: DWord
+        data: 1
+
+- name: V-278677 | convert warn verdict to block
+  tags:
+    - V-278677
+    - CAT2
+  when:
+    - "'V-278677' not in stig_win_defender_antivirus_exceptions"
+  ansible.builtin.set_fact:
+    stig_win_defender_antivirus_policy: >-  # noqa: var-naming[no-role-prefix]
+      {{ stig_win_defender_antivirus_policy + stig_win_defender_antivirus_entries }}
+  vars:
+    stig_win_defender_antivirus_entries:  # noqa: var-naming[no-role-prefix]
+      - path: 'SOFTWARE\Policies\Microsoft\Windows Defender\NIS'
+        name: 'EnableConvertWarnToBlock'
+        type: DWord
+        data: 1
+
+- name: V-278678 | enable asynchronous inspection
+  tags:
+    - V-278678
+    - CAT2
+  when:
+    - "'V-278678' not in stig_win_defender_antivirus_exceptions"
+  ansible.builtin.set_fact:
+    stig_win_defender_antivirus_policy: >-  # noqa: var-naming[no-role-prefix]
+      {{ stig_win_defender_antivirus_policy + stig_win_defender_antivirus_entries }}
+  vars:
+    stig_win_defender_antivirus_entries:  # noqa: var-naming[no-role-prefix]
+      - path: 'SOFTWARE\Policies\Microsoft\Windows Defender\NIS'
+        name: 'AllowSwitchToAsyncInspection'
+        type: DWord
+        data: 1
+
+- name: V-278679 | scan packed executables
+  tags:
+    - V-278679
+    - CAT2
+  when:
+    - "'V-278679' not in stig_win_defender_antivirus_exceptions"
+  ansible.builtin.set_fact:
+    stig_win_defender_antivirus_policy: >-  # noqa: var-naming[no-role-prefix]
+      {{ stig_win_defender_antivirus_policy + stig_win_defender_antivirus_entries }}
+  vars:
+    stig_win_defender_antivirus_entries:  # noqa: var-naming[no-role-prefix]
+      - path: 'SOFTWARE\Policies\Microsoft\Windows Defender\Scan'
+        name: 'DisablePackedExeScanning'
+        type: DWord
+        data: 0
+
+- name: V-278680 | enable heuristics
+  tags:
+    - V-278680
+    - CAT2
+  when:
+    - "'V-278680' not in stig_win_defender_antivirus_exceptions"
+  ansible.builtin.set_fact:
+    stig_win_defender_antivirus_policy: >-  # noqa: var-naming[no-role-prefix]
+      {{ stig_win_defender_antivirus_policy + stig_win_defender_antivirus_entries }}
+  vars:
+    stig_win_defender_antivirus_entries:  # noqa: var-naming[no-role-prefix]
+      - path: 'SOFTWARE\Policies\Microsoft\Windows Defender\Scan'
+        name: 'DisableHeuristics'
+        type: DWord
+        data: 0
+
+- name: V-278863 | set cloud protection level to High
+  tags:
+    - V-278863
+    - CAT2
+  when:
+    - "'V-278863' not in stig_win_defender_antivirus_exceptions"
+  ansible.builtin.set_fact:
+    stig_win_defender_antivirus_policy: >-  # noqa: var-naming[no-role-prefix]
+      {{ stig_win_defender_antivirus_policy + stig_win_defender_antivirus_entries }}
+  vars:
+    stig_win_defender_antivirus_entries:  # noqa: var-naming[no-role-prefix]
+      - path: 'SOFTWARE\Policies\Microsoft\Windows Defender\MpEngine'
+        name: 'MpCloudBlockLevel'
+        type: DWord
+        data: 2
+
+- name: V-278658 | control whether exclusions are visible to Local Admins
+  tags:
+    - V-278658
+    - CAT2
+  when:
+    - "'V-278658' not in stig_win_defender_antivirus_exceptions"
+  ansible.builtin.set_fact:
+    stig_win_defender_antivirus_policy: >-  # noqa: var-naming[no-role-prefix]
+      {{ stig_win_defender_antivirus_policy + stig_win_defender_antivirus_entries }}
+  vars:
+    stig_win_defender_antivirus_entries:  # noqa: var-naming[no-role-prefix]
+      - path: 'SOFTWARE\Policies\Microsoft\Windows Defender'
+        name: 'HideExclusionsFromLocalAdmins'
+        type: DWord
+        data: 1

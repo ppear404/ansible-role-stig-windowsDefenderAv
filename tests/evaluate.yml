@@ -1,0 +1,84 @@
+# SPDX-License-Identifier: MIT-0
+---
+- name: Assess Defender Antivirus on development controllers
+  hosts: pdc:sdc
+  gather_facts: false
+  become: true
+  become_method: ansible.builtin.runas
+  become_user: SYSTEM
+  vars:
+    defender_eval_output: "{{ playbook_dir }}/evidence/{{ defender_eval_phase | default('after') }}/{{ inventory_hostname }}/"
+  tasks:
+    - name: Assess Defender and collect the checklist
+      when: not ansible_check_mode
+      block:
+        - name: Create isolated assessment workspace
+          ansible.windows.win_tempfile:
+            state: directory
+            prefix: defender-stig-
+          register: defender_eval_work  # noqa: var-naming[no-role-prefix]
+
+        - name: Stage the bundled evaluator
+          ansible.windows.win_copy:
+            src: "{{ playbook_dir }}/../files/evaluate-stig-1.2610.1.tar.gz"
+            dest: '{{ defender_eval_work.path }}\evaluator.tar.gz'
+
+        - name: Extract the bundled evaluator
+          ansible.windows.win_command:
+            chdir: "{{ defender_eval_work.path }}"
+            argv: [tar.exe, -xzf, evaluator.tar.gz]
+          changed_when: true
+
+        - name: Run Evaluate-STIG for MSDefender and capture Defender runtime state
+          ansible.windows.win_powershell:
+            error_action: stop
+            parameters:
+              Workspace: "{{ defender_eval_work.path }}"
+              ScanType: "{{ defender_eval_scan_type | default('Unclassified') }}"
+            script: |
+              param([string]$Workspace, [string]$ScanType)
+              $Ansible.Changed = $false
+              Set-Location (Join-Path $Workspace 'evaluate-stig-1.2610.1\Src\Evaluate-STIG')
+              $output = New-Item -ItemType Directory -Path (Join-Path $Workspace 'results')
+              $answers = New-Item -ItemType Directory -Path (Join-Path $Workspace 'answers')
+              $global:LASTEXITCODE = 0
+              & .\Evaluate-STIG.ps1 -SelectSTIG MSDefender -ScanType $ScanType -Output CKLB -OutputPath $output.FullName -AFPath $answers.FullName
+              if (-not $? -or $LASTEXITCODE -ne 0) { throw 'Evaluate-STIG reported an error.' }
+              $files = @(Get-ChildItem -LiteralPath $output.FullName -Filter '*.cklb' -File -Recurse)
+              if ($files.Count -ne 1) { throw "Expected one Defender checklist, found $($files.Count)." }
+              $stig = (Get-Content -LiteralPath $files[0].FullName -Raw | ConvertFrom-Json).stigs
+              if ($stig.stig_id -ne 'MS_Defender_Antivirus' -or $stig.version -ne '2' -or
+                  $stig.release_info -notmatch '^Release: 10\b' -or $stig.rules.Count -ne 67) {
+                  throw 'Expected all 67 controls from Defender Antivirus V2R10.'
+              }
+              $status = Get-MpComputerStatus
+              $pref = Get-MpPreference
+              $Ansible.Result = @{
+                  checklist = $files[0].FullName
+                  runtime = $status | Select-Object AMRunningMode, AMServiceEnabled, AntivirusEnabled,
+                      AntispywareEnabled, RealTimeProtectionEnabled, OnAccessProtectionEnabled,
+                      IoavProtectionEnabled, BehaviorMonitorEnabled, IsTamperProtected,
+                      AntivirusSignatureAge, AntispywareSignatureAge, QuickScanAge
+                  preferences = $pref | Select-Object PUAProtection, MAPSReporting, SubmitSamplesConsent,
+                      EnableNetworkProtection, DisableAutoExclusions, DisableScriptScanning,
+                      ScanScheduleDay, SignatureScheduleDay, AttackSurfaceReductionRules_Ids,
+                      AttackSurfaceReductionRules_Actions
+                  counts = @($stig.rules | Group-Object status | Select-Object Name, Count)
+              }
+          register: defender_eval_scan  # noqa: var-naming[no-role-prefix]
+
+        - name: Fetch Defender checklist
+          ansible.builtin.fetch:
+            src: "{{ defender_eval_scan.result.checklist }}"
+            dest: "{{ defender_eval_output }}"
+            flat: true
+
+        - name: Report Defender runtime and checklist results
+          ansible.builtin.debug:
+            var: defender_eval_scan.result
+      always:
+        - name: Remove isolated assessment workspace
+          ansible.windows.win_file:
+            path: "{{ defender_eval_work.path }}"
+            state: absent
+          when: defender_eval_work.path is defined

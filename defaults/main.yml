@@ -1,0 +1,4 @@
+# SPDX-License-Identifier: MIT-0
+---
+stig_win_defender_antivirus_exceptions: []  # noqa: var-naming[no-role-prefix]
+stig_win_defender_antivirus_unclassified: false  # noqa: var-naming[no-role-prefix]

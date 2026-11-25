@@ -1,0 +1,9 @@
+# SPDX-License-Identifier: MIT-0
+---
+galaxy_info:
+  author: Project maintainers
+  description: Microsoft Defender Antivirus DISA STIG V2R10 for Windows Server 2025
+  role_name: stig_win_defender_antivirus
+  license: MIT-0
+  min_ansible_version: '2.16'
+dependencies: []

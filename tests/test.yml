@@ -1,0 +1,4 @@
+# SPDX-License-Identifier: MIT-0
+---
+- name: Exercise the Defender role through its development playbook
+  ansible.builtin.import_playbook: ../../../playbooks/role_stig_winDefenderAntivirus.yml

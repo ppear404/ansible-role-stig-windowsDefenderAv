@@ -1,0 +1,62 @@
+# SPDX-License-Identifier: MIT-0
+---
+- name: Verify the Windows Server 2025 Defender target
+  ansible.windows.win_powershell:
+    error_action: stop
+    script: |
+      $Ansible.Changed = $false
+      $os = Get-CimInstance Win32_OperatingSystem
+      if ($os.BuildNumber -ne '26100' -or $os.ProductType -notin 2, 3) {
+          throw "Expected Windows Server 2025 build 26100. Found $($os.Caption), build $($os.BuildNumber)."
+      }
+      $status = Get-MpComputerStatus
+      if (-not $status.AMServiceEnabled -or -not $status.AntivirusEnabled -or $status.AMRunningMode -ne 'Normal') {
+          throw 'Microsoft Defender Antivirus must be installed and active as the primary antivirus.'
+      }
+      $Ansible.Result = @{
+          caption = $os.Caption
+          build = $os.BuildNumber
+          defender_mode = $status.AMRunningMode
+          tamper_protected = $status.IsTamperProtected
+      }
+  check_mode: false
+  tags: [always]
+
+- name: Initialize the selected Defender policy entries
+  ansible.builtin.set_fact:
+    stig_win_defender_antivirus_policy: []  # noqa: var-naming[no-role-prefix]
+  tags: [always]
+
+- name: Select Defender Antivirus V2R10 policy
+  ansible.builtin.import_tasks: registry.yml
+
+- name: Select attack surface reduction and network protection policy
+  ansible.builtin.import_tasks: exploit_protection.yml
+
+- name: Select advanced Defender Antivirus policy
+  ansible.builtin.import_tasks: advanced.yml
+
+- name: Enable the shared ASR policy when at least one ASR rule is selected
+  ansible.builtin.set_fact:
+    stig_win_defender_antivirus_policy: >-  # noqa: var-naming[no-role-prefix]
+      {{ [stig_win_defender_antivirus_asr_enable] + stig_win_defender_antivirus_policy }}
+  vars:
+    stig_win_defender_antivirus_asr_enable:  # noqa: var-naming[no-role-prefix]
+      path: 'SOFTWARE\Policies\Microsoft\Windows Defender\Windows Defender Exploit Guard\ASR'
+      name: ExploitGuard_ASR_Rules
+      type: DWord
+      data: 1
+  when: >-
+    stig_win_defender_antivirus_policy
+    | selectattr('path', 'equalto', stig_win_defender_antivirus_asr_enable.path ~ '\\Rules')
+    | list | length > 0
+  tags: [always]
+
+- name: Apply the selected Defender Antivirus policy
+  ansible.windows.win_powershell:
+    error_action: stop
+    parameters:
+      PolicyJson: "{{ stig_win_defender_antivirus_policy | to_json }}"
+    script: "{{ lookup('ansible.builtin.file', role_path ~ '/files/Set-DefenderPolicy.ps1') }}"
+  when: stig_win_defender_antivirus_policy | length > 0
+  tags: [always]
